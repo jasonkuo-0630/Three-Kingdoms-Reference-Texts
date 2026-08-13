@@ -1,0 +1,22 @@
+[
+  {
+    "id": "zhengshi",
+    "label": "正史",
+    "description": "《三國志》《後漢書》《資治通鑑》等正史與編年史籍"
+  },
+  {
+    "id": "yanyi",
+    "label": "演義／小說",
+    "description": "《三國演義》及其他章回小說"
+  },
+  {
+    "id": "difangzhi",
+    "label": "地方志與傳說",
+    "description": "地方志、地方文化資料與民間傳說"
+  },
+  {
+    "id": "wenji",
+    "label": "名家文集",
+    "description": "人物本人的傳世著作、書信與文章"
+  }
+]
