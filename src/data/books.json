@@ -48,5 +48,25 @@
     "unitLabelPrefix": "第",
     "unitLabelSuffix": "回",
     "description": "尚未收錄任何回目，架構預留"
+  },
+  {
+    "id": "jihan-fuchen-zan",
+    "categoryId": "wenji",
+    "title": "季漢輔臣贊",
+    "author": "楊戲",
+    "unitType": "article",
+    "unitLabelPrefix": "",
+    "unitLabelSuffix": "",
+    "description": "延熙四年（241年）撰，全文保存於《三國志》卷四十五楊戲傳"
+  },
+  {
+    "id": "xiangyang-ji",
+    "categoryId": "difangzhi",
+    "title": "襄陽記",
+    "author": "習鑿齒",
+    "unitType": "article",
+    "unitLabelPrefix": "",
+    "unitLabelSuffix": "",
+    "description": "原書已佚（又名《襄陽耆舊記》），本站僅收錄與人物誌相關的傳世輯文，不是完整原本"
   }
 ]
