@@ -1,0 +1,22 @@
+[
+  {
+    "id": "sanguo-yanyi",
+    "categoryId": "yanyi",
+    "title": "三國演義",
+    "author": "羅貫中",
+    "unitType": "hui",
+    "unitLabelPrefix": "第",
+    "unitLabelSuffix": "回",
+    "description": "明清通行本，共一百二十回"
+  },
+  {
+    "id": "sanguozhi",
+    "categoryId": "zhengshi",
+    "title": "三國志",
+    "author": "陳壽",
+    "unitType": "juan",
+    "unitLabelPrefix": "卷",
+    "unitLabelSuffix": "",
+    "description": "尚未收錄任何卷次，架構預留"
+  }
+]
