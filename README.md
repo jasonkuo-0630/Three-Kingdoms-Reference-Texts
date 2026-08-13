@@ -1,43 +1,204 @@
-# Astro Starter Kit: Minimal
+# 三國文獻庫
 
-```sh
-npm create astro@latest -- --template minimal
+「三國人物誌」的姊妹站，收錄原始文獻全文，供讀者查證史料出處。
+
+網址：`https://jasonkuo-0630.github.io/Three-Kingdoms-Reference-Texts/`
+
+## 這是什麼網站
+
+「三國人物誌」（`Three-Kingdoms-Biographies-Astro`）的每一則史料引用，原本只
+用純文字標示「出自哪部文獻、哪一卷／回」，讀者沒辦法直接核對原文。這個網站的
+目的，是把人物誌實際引用到的原始文獻收錄進來，讓引用**可以點擊，直接跳轉到這
+裡對應的原文全文**，把「我們說有記載」變成「你可以自己親眼看到記載」。
+
+這是一個**獨立的 Astro 專案**，跟人物誌本身分開部署、分開維護，兩者透過各自
+`src/data/` 底下的 JSON 檔案手動保持串接（見下方「跟人物誌的串接機制」），沒
+有共用資料庫或即時同步機制。
+
+視覺風格直接沿用人物誌的 `style.css`（配色、字體、卡片樣式），是同一套設計語
+言，但版面配置是重新設計的，不是複製人物誌的頁面結構——人物誌的核心單位是
+「人物」，這裡的核心單位是「一卷／一回／一篇文獻」，兩者的瀏覽邏輯本來就不一
+樣，硬套人物誌既有的元件會很牽強。
+
+## 三層瀏覽架構
+
+```
+類別（正史／演義小說／地方志與傳說／著作與文集）
+  └─ 書（《三國志》《三國演義》《後漢書》……）
+       └─ 卷／回／篇（實際的原文內容頁）
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+**類別不是照搬人物誌 `sources.json` 的七種 `kind` 分類**——`kind` 裡的「裴松之
+注引」跟「現代遊戲」在這裡沒有自己獨立的內容可以瀏覽（裴注引書依附在宿主卷
+裡、現代遊戲不進文獻庫），照搬會出現兩個永遠空著的類別。這裡改用四個專門為文
+獻庫瀏覽設計的類別：
 
-## 🚀 Project Structure
+| 類別 `id` | 標籤 | 收錄範圍 |
+|---|---|---|
+| `zhengshi` | 正史 | 《三國志》《後漢書》《資治通鑑》等正史與編年史籍 |
+| `yanyi` | 演義／小說 | 《三國演義》《反三國演義》等章回小說 |
+| `difangzhi` | 地方志與傳說 | 地方志、地方文化資料與民間傳說 |
+| `wenji` | 著作與文集 | 人物本人的傳世著作、書信與單篇文章 |
 
-Inside of your Astro project, you'll see the following folders and files:
+**單篇完整著作（如《季漢輔臣贊》）不需要額外的第四層**——直接把它當成一本只有
+一個閱讀單元的「書」處理，`unitType` 標為 `article`，跟「卷」「回」用同一套三
+層結構承載，不用為了單篇著作另外設計特例。
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+## 目前收錄狀況
+
+7 部文獻，共 29 個閱讀單元：
+
+| 文獻 | 類別 | 已收錄 |
+|---|---|---|
+| 《三國志》 | 正史 | 卷二十八、三十二、三十三、三十五、三十六、三十七、四十四、四十五（共 8 卷） |
+| 《後漢書》 | 正史 | 卷三十八、八十三（共 2 卷） |
+| 《華陽國志》 | 地方志與傳說 | 卷七（共 1 卷） |
+| 《三國演義》 | 演義／小說 | 第五回（測試用節選，非完整全回） |
+| 《反三國演義》 | 演義／小說 | 第八、十、二十一、二十四、二十九、三十、四十、四十一、四十三、四十六、四十八、四十九、五十三、五十四、五十八、六十回（共 16 回） |
+| 《季漢輔臣贊》 | 著作與文集 | 全篇（序文＋32 段贊語） |
+| 《襄陽記》 | 地方志與傳說 | 輯文（黃承彥婚姻條、蔡氏條，共 2 則） |
+
+**收錄範圍不是照書籍逐本收錄，是照人物誌實際引用到的內容優先收錄**——目前這
+批（八卷三國志、兩卷後漢書、一卷華陽國志、十六回反三國演義、季漢輔臣贊、襄陽
+記輯文）對應的是黃氏、趙雲、關平、法正、姜維這五位人物實際用到的三十四筆來
+源。之後要擴充哪部文獻的哪個部分，同樣依人物誌實際需求決定優先順序，不會為了
+「收錄完整」而囤積目前用不到的內容。
+
+## 資料結構
+
+```
+src/data/
+├── categories.json       四個類別
+├── books.json             書籍目錄，每本書登記所屬類別、作者、單位類型
+└── units/
+    └── {bookId}/
+        └── {slug}.json    實際內容，一份檔案一個卷／回／篇
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+**`books.json`**：每本書一筆，包含 `id`、`categoryId`、`title`、`author`、
+`unitType`（`juan`／`hui`／`article`）、`unitLabelPrefix`／`unitLabelSuffix`
+（用來組出「卷三十六」或「第五回」這種顯示文字）、`description`。**新增一部書
+之前，要先在這裡登記，否則類別頁、書籍列表頁會找不到對應資料。**
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+**`units/{bookId}/{slug}.json`**：每個閱讀單元一份檔案，`slug` 直接取自檔名
+（不用另外维護一個獨立欄位去對應網址），例如 `sanguozhi/j036.json` 對應網址
+`/book/sanguozhi/j036/`。單一檔案結構：
 
-Any static assets, like images, can be placed in the `public/` directory.
+```json
+{
+  "id": "sanguozhi-j036",
+  "bookId": "sanguozhi",
+  "unitNumber": 36,
+  "unitLabel": "卷三十六",
+  "title": "關張馬黃趙傳",
+  "status": "complete",
+  "statusNote": "文本來源與授權說明",
+  "sections": [
+    {
+      "id": "sec-1",
+      "label": "關羽",
+      "paragraphs": ["……", "……"]
+    }
+  ]
+}
+```
 
-## 🧞 Commands
+`sections` 的切分邏輯依文獻性質而定：紀傳體史書（《三國志》《後漢書》）以人
+名為單位切分；沒有天然分段標記的敘事文本（如《反三國演義》的章回）整回當一個
+區塊；有明確格式標記的作品（如《季漢輔臣贊》每段贊語結尾的〈贊某人〉）依格式
+標記切分。**切分方式不強求全站統一，優先忠於原始文本自身的結構。**
 
-All commands are run from the root of the project, from a terminal:
+`status` 標示這個閱讀單元的完整度：`complete`（完整收錄）或 `excerpt`（僅節
+選，非全文）。像三國演義第五回目前是測試期間留下的節選內容，就標成
+`excerpt`，避免讀者誤以為那就是完整的一回。
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## 動態路由
 
-## 👀 Want to learn more?
+```
+src/pages/
+├── index.astro                          首頁，四個類別入口
+├── category/[id].astro                  類別頁，列出該類別底下的書
+└── book/
+    └── [bookId]/
+        ├── index.astro                  書籍頁，列出該書收錄的卷／回
+        └── [unitId].astro               實際內文頁
+```
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+新增一個閱讀單元，只需要在 `src/data/units/{bookId}/` 底下新增一份 JSON 檔
+案，`npm run build` 就會自動生成對應頁面，不需要手動建立或修改任何 `.astro`
+檔案。新增一整本新書，則要先在 `books.json` 登記，再開始新增底下的閱讀單元。
+
+## 跟人物誌的串接機制
+
+人物誌那邊的 `src/data/sources.json`（來源目錄）跟 `src/data/text-units.json`
+（連結目錄），負責把人物頁面上的引用文字，接到這裡對應的閱讀單元網址。完整的
+判斷邏輯寫在人物誌自己的 README 裡，這裡只列文獻庫這一側要注意的事：
+
+**每收錄完一個新的閱讀單元、確認真的上線可以打開之後**，要回頭去人物誌那邊的
+`text-units.json` 新增一筆對應目錄，`sources.json` 才能接上正確網址。**這件事
+一定要等網址真的存在才做**——文獻庫這邊測試期間出現過的假網址（比如早期驗證
+連結機制時用的 `PLACEHOLDER` 域名），如果被人物誌那邊接上，會變成讀者點下去
+卻是死路的連結，比維持純文字還糟，之後也曾實際發生過需要回頭撤銷這類誤接的情
+況。
+
+**同一部書如果被引用到很多不同卷／回，不能只給一個連結**——例如《三國演義》
+《反三國演義》這種橫跨全書上百回被引用的來源，人物誌那邊會用「每則引用各自標
+明自己對應哪一回」的方式處理，不會因為文獻庫這邊多收錄了幾回，就想著要幫整部
+書設一個統一連結。
+
+裴松之注引用的佚書（例如《雲別傳》《華陽國志》裴注部分），文獻庫這邊即使收錄
+了原書的獨立卷次（如《華陽國志》卷七），人物誌那邊的連結原則上仍指向**實際保
+存這段引文的《三國志》宿主卷**，不是指向獨立收錄的原書頁面——這是因為裴注保
+存的文字，不保證跟現存原書版本逐字相同，指向宿主卷才是忠於「這段文字實際是從
+哪裡讀到的」。
+
+## 版權與文本來源
+
+古籍原文本身屬公版，但**每一份現代整理、標點或數位轉錄，不代表可以直接複製使
+用**——目前收錄的文本主要參考中文維基文庫的數位化版本，每個閱讀單元的
+`statusNote` 欄位都會記錄實際文本來源與授權狀態；使用其他來源時，同樣要在這
+個欄位如實記錄，不能省略。
+
+《反三國演義》（周大荒著，1930 年出版）作者已於著作權保護期外，全書屬公有領
+域。
+
+## 本機開發
+
+```bash
+npm install
+npm run dev      # http://localhost:4321/Three-Kingdoms-Reference-Texts/
+npm run build
+npm run preview
+```
+
+`astro.config.mjs` 設定了 `base: "/Three-Kingdoms-Reference-Texts"`，本機開發
+網址需要帶上這段路徑。
+
+## 部署
+
+跟人物誌採用同一套 GitHub Actions 自動化流程：`.github/workflows/deploy.yml`
+在每次 push 到 `main` 分支時自動 `npm install` + `npm run build`，部署到
+GitHub Pages。GitHub 網站的 Settings → Pages → Source 需設定為
+`GitHub Actions`。
+
+## 已知風險與待辦
+
+- 目前只有 7 部文獻、29 個閱讀單元，遠不是完整收錄；擴充順序依人物誌實際引用
+  需求決定，不是照書籍目錄逐一補齊。
+- 《三國演義》目前只有第五回一個測試用的節選單元（`status: "excerpt"`），是
+  最早驗證連結機制時留下的內容，還沒有真正完整收錄任何一回；這是接下來優先要
+  補的部分。
+- `books.json` 裡的《三國志》《後漢書》等書籍描述欄位，部分仍寫著「尚未收錄
+  任何卷次，架構預留」這類初期佔位文字，實際已有內容收錄進去後，這些描述沒有
+  跟著更新，需要之後統一檢查修正。
+- 沒有站內搜尋功能。曾討論過以「文獻名稱＋卷／回」作為搜尋關鍵字（呼應人物誌
+  `sourceId` 的命名慣例），但尚未實作。
+- 沒有自動化的資料驗證工具（跟人物誌的 `validate-data.js` 對應的角色），目前
+  新增內容後仰賴手動跑 `npm run build` 確認頁面正確生成，並抽查渲染結果。
+  待辦補充：文獻庫分類入口名稱待精確化
+- 奈奈曾建議把文獻庫首頁的分類名稱改得更精確，目前 categories.json 裡的四個類別
+（zhengshi 正史、yanyi 演義／小說、difangzhi 地方志與傳說、wenji 著作與文集），有兩個名稱值得再斟酌：
+「正史」建議改為「史籍」——因為《資治通鑑》是編年體通史，不屬於傳統認定的「正史」（紀傳體二十四史），若第一層直接叫「正史」，之後收錄《資治通鑑》會不夠嚴謹。
+「著作與文集」原建議名稱是這個，理由是〈出師表〉〈誡子書〉這類單篇文章本身不是「文集」，用「著作與文集」才能同時涵蓋單篇文章跟人物文集兩種情況。
+ 這件事只動 label 顯示文字（id 不用改，zhengshi／wenji 這兩個代號本身沒有問題，只是畫面上呈現的名稱要改），改完要重新 build 確認四個類別頁跟首頁卡片正常顯示。
+
