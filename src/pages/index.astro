@@ -1,15 +1,21 @@
 ---
 import "../styles/style.css";
-import { testUnit } from "../data/testData";
+import categories from "../data/categories.json";
+import books from "../data/books.json";
 
-const toc = testUnit.sections.map((s) => ({ id: s.id, label: s.label }));
-const tocDataJson = JSON.stringify({ main: toc });
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+
+// 每個類別底下實際有幾本書，顯示在卡片上
+const bookCountByCategory = new Map<string, number>();
+for (const b of books as any[]) {
+  bookCountByCategory.set(b.categoryId, (bookCountByCategory.get(b.categoryId) || 0) + 1);
+}
 ---
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{testUnit.book}・{testUnit.unitLabel} - 三國文獻庫</title>
+    <title>三國文獻庫</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,176 +23,24 @@ const tocDataJson = JSON.stringify({ main: toc });
       rel="stylesheet"
     />
   </head>
-  <body class="char-page">
+  <body>
     <div class="page">
-      <a class="back-link" href="/">← 返回文獻庫首頁</a>
+      <header class="site-header">
+        <h1 class="site-title">三國文獻庫</h1>
+        <p class="site-subtitle">三國人物誌的姊妹站，收錄原始文獻全文，供讀者查證史料出處</p>
+      </header>
 
-      <div id="char-root">
-        <section class="char-hero">
-          <div class="char-hero-info">
-            <p class="char-alias">{testUnit.book}</p>
-            <h1 class="char-hero-name">{testUnit.unitLabel}</h1>
-            <p class="char-summary">{testUnit.title}</p>
-            <div class="meta-grid">
-              <div class="meta-field">
-                <span class="meta-label">收錄狀態</span>
-                <span class="meta-value">測試節選（三段場景，非全文）</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div id="tabs-content">
-          <div class="tab-panel" data-panel-key="main">
-            {
-              testUnit.sections.map((section) => (
-                <div class="section-block" id={section.id}>
-                  <h2 class="section-title">{section.label}</h2>
-                  {section.paragraphs.map((p) => (
-                    <p class="paraphrase-text">{p}</p>
-                  ))}
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 頁內導覽：跟三國人物誌人物頁用的是同一套機制。寬螢幕固定在右側
-         的半透明懸浮面板，窄螢幕（含手機）改成右上角直排文字書籤，點開
-         從右側滑出完整導覽。 -->
-    <aside class="toc-panel" id="toc-panel" aria-label="本頁內容導覽">
-      <p class="toc-panel-title">本回場景導覽</p>
-      <ul class="toc-list" id="toc-list"></ul>
-    </aside>
-
-    <button type="button" class="toc-toggle" id="toc-toggle" aria-expanded="false" aria-controls="toc-overlay">
-      <span class="toc-toggle-label">目錄</span>
-    </button>
-
-    <div class="toc-overlay" id="toc-overlay" hidden>
-      <div class="toc-overlay-panel">
-        <div class="toc-overlay-header">
-          <p class="toc-panel-title">本回場景導覽</p>
-          <button type="button" class="toc-overlay-close" id="toc-overlay-close" aria-label="關閉目錄">✕</button>
-        </div>
-        <ul class="toc-list" id="toc-list-mobile"></ul>
-      </div>
-    </div>
-
-    <script type="application/json" id="toc-data" set:html={tocDataJson} is:inline />
-
-    <script>
-      interface TocItem {
-        id: string;
-        label: string;
-      }
-
-      function escapeHtml(str: string) {
-        return str
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
-      const dataEl = document.getElementById("toc-data");
-      const tocData: Record<string, TocItem[]> = JSON.parse(dataEl?.textContent || "{}");
-
-      const tocPanel = document.getElementById("toc-panel");
-      const tocListDesktop = document.getElementById("toc-list");
-      const tocListMobile = document.getElementById("toc-list-mobile");
-      const tocToggle = document.getElementById("toc-toggle") as HTMLButtonElement;
-      const tocOverlay = document.getElementById("toc-overlay") as HTMLDivElement;
-      const tocOverlayClose = document.getElementById("toc-overlay-close");
-
-      const SCROLL_OFFSET = 96;
-      let currentIds: string[] = [];
-      let suppressAutoUpdateUntil = 0;
-
-      function closeMobileOverlay() {
-        if (tocOverlay) tocOverlay.hidden = true;
-        tocToggle?.setAttribute("aria-expanded", "false");
-      }
-      function openMobileOverlay() {
-        if (tocOverlay) tocOverlay.hidden = false;
-        tocToggle?.setAttribute("aria-expanded", "true");
-      }
-      function setActiveItem(id: string | null) {
-        document.querySelectorAll<HTMLElement>("[data-toc-target]").forEach((a) => {
-          a.classList.toggle("is-active", id !== null && a.dataset.tocTarget === id);
-        });
-      }
-
-      function updateActiveFromScroll() {
-        if (Date.now() < suppressAutoUpdateUntil) return;
-
-        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-        if (atBottom && currentIds.length) {
-          setActiveItem(currentIds[currentIds.length - 1]);
-          return;
+      <section class="portal-grid">
+        {
+          (categories as any[]).map((c) => (
+            <a class="portal-card" href={`${base}category/${c.id}`}>
+              <h2 class="portal-card-title">{c.label}</h2>
+              <p class="portal-card-desc">{c.description}</p>
+              <p class="portal-count">{bookCountByCategory.get(c.id) || 0} 部文獻</p>
+            </a>
+          ))
         }
-
-        let current: string | null = null;
-        for (const id of currentIds) {
-          const el = document.getElementById(id);
-          if (!el) continue;
-          const top = el.getBoundingClientRect().top;
-          if (top - SCROLL_OFFSET <= 1) {
-            current = id;
-          } else {
-            break;
-          }
-        }
-        if (!current && currentIds.length) current = currentIds[0];
-        setActiveItem(current);
-      }
-
-      function bindClickHandlers() {
-        document.querySelectorAll<HTMLAnchorElement>("[data-toc-target]").forEach((a) => {
-          a.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = a.dataset.tocTarget!;
-            const target = document.getElementById(targetId);
-            setActiveItem(targetId);
-            suppressAutoUpdateUntil = Date.now() + 700;
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-            closeMobileOverlay();
-          });
-        });
-      }
-
-      function renderList(key: string) {
-        const items = tocData[key] || [];
-        const topLinkHtml = `<li class="toc-top-link"><a href="#char-root" data-toc-target="char-root">↑ 回到頂端</a></li>`;
-        const html =
-          topLinkHtml +
-          items
-            .map((it) => `<li><a href="#${escapeHtml(it.id)}" data-toc-target="${escapeHtml(it.id)}">${escapeHtml(it.label)}</a></li>`)
-            .join("");
-        if (tocListDesktop) tocListDesktop.innerHTML = html;
-        if (tocListMobile) tocListMobile.innerHTML = html;
-        const hasItems = items.length > 0;
-        if (tocPanel) tocPanel.hidden = !hasItems;
-        if (tocToggle) tocToggle.hidden = !hasItems;
-        bindClickHandlers();
-        currentIds = items.map((it) => it.id);
-        window.addEventListener("scroll", () => window.requestAnimationFrame(updateActiveFromScroll));
-        updateActiveFromScroll();
-      }
-
-      tocToggle?.addEventListener("click", () => {
-        const isOpen = tocOverlay ? !tocOverlay.hidden : false;
-        if (isOpen) closeMobileOverlay();
-        else openMobileOverlay();
-      });
-      tocOverlayClose?.addEventListener("click", closeMobileOverlay);
-      tocOverlay?.addEventListener("click", (e) => {
-        if (e.target === tocOverlay) closeMobileOverlay();
-      });
-
-      renderList("main");
-    </script>
+      </section>
+    </div>
   </body>
 </html>
