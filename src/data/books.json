@@ -18,5 +18,35 @@
     "unitLabelPrefix": "卷",
     "unitLabelSuffix": "",
     "description": "尚未收錄任何卷次，架構預留"
+  },
+  {
+    "id": "houhanshu",
+    "categoryId": "zhengshi",
+    "title": "後漢書",
+    "author": "范曄",
+    "unitType": "juan",
+    "unitLabelPrefix": "卷",
+    "unitLabelSuffix": "",
+    "description": "尚未收錄任何卷次，架構預留"
+  },
+  {
+    "id": "huayang-guozhi",
+    "categoryId": "difangzhi",
+    "title": "華陽國志",
+    "author": "常璩",
+    "unitType": "juan",
+    "unitLabelPrefix": "卷",
+    "unitLabelSuffix": "",
+    "description": "尚未收錄任何卷次，架構預留"
+  },
+  {
+    "id": "fan-sanguo-yanyi",
+    "categoryId": "yanyi",
+    "title": "反三國演義",
+    "author": "周大荒",
+    "unitType": "hui",
+    "unitLabelPrefix": "第",
+    "unitLabelSuffix": "回",
+    "description": "尚未收錄任何回目，架構預留"
   }
 ]
