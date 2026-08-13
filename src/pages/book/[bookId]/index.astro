@@ -1,0 +1,82 @@
+---
+import "../../../styles/style.css";
+import books from "../../../data/books.json";
+
+export function getStaticPaths() {
+  return (books as any[]).map((b) => ({ params: { bookId: b.id } }));
+}
+
+const { bookId } = Astro.params;
+const book = (books as any[]).find((b) => b.id === bookId)!;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+
+const unitsModules = import.meta.glob<{ default: any }>("../../../data/units/*/*.json", { eager: true });
+const units = Object.entries(unitsModules)
+  .filter(([path]) => path.includes(`/units/${bookId}/`))
+  .map(([path, m]) => {
+    const slug = path.split("/").pop()!.replace(/\.json$/, "");
+    return { ...m.default, slug };
+  })
+  .sort((a, b) => a.unitNumber - b.unitNumber);
+---
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{book.title} - 三國文獻庫</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href={base} aria-label="回到三國文獻庫首頁">
+          <span class="brand-seal" aria-hidden="true">籍</span>
+          <span class="brand-copy">
+            <strong>三國文獻庫</strong>
+            <small>返回首頁・{book.title}</small>
+          </span>
+        </a>
+        <a class="top-link" href={`${base}category/${book.categoryId}`}>← 回類別列表</a>
+      </div>
+    </header>
+
+    <section class="faction-banner">
+      <div class="banner-copy">
+        <h1>{book.title}</h1>
+        <p>{book.author ? `${book.author}　撰　・　` : ""}{book.description}</p>
+      </div>
+      <span class="banner-count">{units.length > 0 ? `已收錄 ${units.length} ${book.unitLabelSuffix || book.unitLabelPrefix}` : "尚無收錄內容"}</span>
+    </section>
+
+    <main class="slip-panel" aria-label="卷回列表">
+      <div class="slip-list">
+        {
+          units.map((u) => (
+            <a class="slip" href={`${base}book/${bookId}/${u.slug}`} aria-label={`查看${u.unitLabel}`}>
+              <span class="slip-accent" aria-hidden="true" />
+              <span class="slip-mark" aria-hidden="true">{book.unitLabelPrefix}{u.unitNumber}</span>
+              <span class="slip-main">
+                <span class="slip-name">{u.unitLabel}</span>
+                <span class="slip-courtesy">{u.title}</span>
+              </span>
+              <span class="slip-extra">
+                <span class="slip-tags">
+                  <span class={`slip-tag ${u.status === "complete" ? "slip-tag--hist" : "slip-tag--romance"}`}>
+                    {u.status === "complete" ? "全文收錄" : "節選"}
+                  </span>
+                </span>
+                <span class="slip-enter">›</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+      {units.length === 0 && <p class="empty-state">這本書目前還沒有收錄任何卷／回。</p>}
+    </main>
+  </body>
+</html>
