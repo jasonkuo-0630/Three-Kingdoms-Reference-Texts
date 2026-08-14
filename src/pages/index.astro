@@ -14,6 +14,8 @@ for (const b of books as any[]) {
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="icon" href={`${base}favicon.ico`} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>三國文獻庫</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,9 +36,13 @@ for (const b of books as any[]) {
         {
           (categories as any[]).map((c) => (
             <a class="portal-card" href={`${base}category/${c.id}`}>
-              <h2 class="portal-card-title">{c.label}</h2>
-              <p class="portal-card-desc">{c.description}</p>
-              <p class="portal-count">{bookCountByCategory.get(c.id) || 0} 部文獻</p>
+              <img class="portal-card-img" src={`${base}images/categories/${c.id}.jpg`} alt="" loading="lazy" />
+              <span class="portal-card-overlay" aria-hidden="true" />
+              <span class="portal-card-body">
+                <span class="portal-card-title">{c.label}</span>
+                <span class="portal-card-desc">{c.description}</span>
+                <span class="portal-count">{bookCountByCategory.get(c.id) || 0} 部文獻</span>
+              </span>
             </a>
           ))
         }
