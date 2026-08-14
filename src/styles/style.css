@@ -197,6 +197,15 @@ summary:focus-visible {
   box-shadow: inset 0 0 0 3px rgba(139, 52, 45, 0.08);
 }
 
+/* 文獻庫站的品牌印記改用 favicon 的顏色（#355c55），不跟主站共用
+   --accent 那組赭紅色——兩站雖然共用同一份 style.css 的配色變數，
+   但品牌印記本身刻意跟 favicon 保持一致，所以在這裡單獨覆寫 */
+.brand-seal--ref {
+  border-color: rgba(53, 92, 85, 0.7);
+  color: #355c55;
+  box-shadow: inset 0 0 0 3px rgba(53, 92, 85, 0.08);
+}
+
 .brand-copy strong {
   display: block;
   font-family: var(--font-display);
@@ -2246,12 +2255,13 @@ td[data-label="資料性質"] > div:last-child {
 }
 
 .portal-card {
+  position: relative;
   display: block;
-  background: rgba(41, 34, 28, 0.55);
-  border: 1px solid var(--line);
+  aspect-ratio: 4 / 3;
   border-radius: var(--radius);
-  padding: 24px 20px;
+  overflow: hidden;
   text-decoration: none;
+  border: 1px solid var(--line);
   transition: border-color 0.2s, transform 0.2s;
 }
 
@@ -2260,22 +2270,55 @@ td[data-label="資料性質"] > div:last-child {
   transform: translateY(-2px);
 }
 
+.portal-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.portal-card:hover .portal-card-img {
+  transform: scale(1.04);
+}
+
+/* 底部漸層讓文字在任何照片內容上都讀得清楚，不用另外判斷每張圖哪裡
+   比較暗——漸層本身就負責把下半部壓暗 */
+.portal-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 12, 10, 0.92) 0%, rgba(15, 12, 10, 0.55) 38%, rgba(15, 12, 10, 0.05) 70%);
+}
+
+.portal-card-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .portal-card-title {
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  color: var(--text);
-  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: #f4eee3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .portal-card-desc {
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: rgba(244, 238, 227, 0.82);
+  font-size: 0.82rem;
   line-height: 1.6;
-  margin: 0 0 14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .portal-count {
-  color: var(--accent);
-  font-size: 0.8rem;
-  margin: 0;
+  margin-top: 4px;
+  color: #d9b877;
+  font-size: 0.78rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
