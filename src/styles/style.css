@@ -1283,6 +1283,11 @@ summary:focus-visible {
   margin: 0 0 8px;
 }
 
+.paraphrase-text .pei-annotation {
+  color: var(--text-muted);
+  font-size: 0.88em;
+}
+
 .plain-card {
   padding: 14px 18px;
   border-radius: var(--radius);
@@ -1967,7 +1972,8 @@ td[data-label="資料性質"] > div:last-child {
 
 .section-block,
 .timeline-item,
-.work-entry {
+.work-entry,
+.paraphrase-text {
   scroll-margin-top: 96px;
 }
 
