@@ -1,5 +1,5 @@
 ---
-import "../styles/style.css";
+import Layout from "../layouts/Layout.astro";
 import categories from "../data/categories.json";
 import books from "../data/books.json";
 
@@ -11,42 +11,28 @@ for (const b of books as any[]) {
   bookCountByCategory.set(b.categoryId, (bookCountByCategory.get(b.categoryId) || 0) + 1);
 }
 ---
-<html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <link rel="icon" href={`${base}favicon.ico`} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>三國文獻庫</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="page">
-      <header class="site-header">
-        <h1 class="site-title">三國文獻庫</h1>
-        <p class="site-subtitle">三國人物誌的姊妹站，收錄原始文獻全文，供讀者查證史料出處</p>
-      </header>
 
-      <section class="portal-grid">
-        {
-          (categories as any[]).map((c) => (
-            <a class="portal-card" href={`${base}category/${c.id}`}>
-              <img class="portal-card-img" src={`${base}images/categories/${c.id}.jpg`} alt="" loading="lazy" />
-              <span class="portal-card-overlay" aria-hidden="true" />
-              <span class="portal-card-body">
-                <span class="portal-card-title">{c.label}</span>
-                <span class="portal-card-desc">{c.description}</span>
-                <span class="portal-count">{bookCountByCategory.get(c.id) || 0} 部文獻</span>
-              </span>
-            </a>
-          ))
-        }
-      </section>
-    </div>
-  </body>
-</html>
+<Layout title="三國文獻庫">
+  <div class="page">
+    <header class="site-header">
+      <h1 class="site-title">三國文獻庫</h1>
+      <p class="site-subtitle">三國人物誌的姊妹站，收錄原始文獻全文，供讀者查證史料出處</p>
+    </header>
+
+    <section class="portal-grid">
+      {
+        (categories as any[]).map((c) => (
+          <a class="portal-card" href={`${base}category/${c.id}`}>
+            <img class="portal-card-img" src={`${base}images/categories/${c.id}.jpg`} alt="" loading="lazy" />
+            <span class="portal-card-overlay" aria-hidden="true" />
+            <span class="portal-card-body">
+              <span class="portal-card-title">{c.label}</span>
+              <span class="portal-card-desc">{c.description}</span>
+              <span class="portal-count">{bookCountByCategory.get(c.id) || 0} 部文獻</span>
+            </span>
+          </a>
+        ))
+      }
+    </section>
+  </div>
+</Layout>
