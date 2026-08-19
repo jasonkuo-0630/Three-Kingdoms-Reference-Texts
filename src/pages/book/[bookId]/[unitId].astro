@@ -1,5 +1,5 @@
 ---
-import "../../../styles/style.css";
+import Layout from "../../../layouts/Layout.astro";
 import books from "../../../data/books.json";
 
 export function getStaticPaths() {
@@ -32,201 +32,187 @@ function renderParagraph(text: string) {
   ).join("");
 }
 ---
-<html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <link rel="icon" href={`${base}favicon.ico`} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{book.title}・{unit.unitLabel} - 三國文獻庫</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="char-page">
-    <div class="page">
-      <a class="back-link" href={`${base}book/${bookId}`}>← 返回《{book.title}》卷回列表</a>
 
-      <div id="char-root">
-        <section class="char-hero">
-          <div class="char-hero-info">
-            <p class="char-alias">{book.title}{book.author ? `・${book.author}　撰` : ""}</p>
-            <h1 class="char-hero-name">{unit.unitLabel}</h1>
-            <p class="char-summary">{unit.title}</p>
-            <div class="meta-grid">
-              <div class="meta-field">
-                <span class="meta-label">收錄狀態</span>
-                <span class="meta-value">{unit.status === "complete" ? "全文收錄" : "節選"}</span>
-              </div>
-              {unit.statusNote && (
-                <div class="meta-field">
-                  <span class="meta-label">說明</span>
-                  <span class="meta-value">{unit.statusNote}</span>
-                </div>
-              )}
+<Layout title={`${book.title}・${unit.unitLabel} - 三國文獻庫`}>
+  <div class="page">
+    <a class="back-link" href={`${base}book/${bookId}`}>← 返回《{book.title}》卷回列表</a>
+
+    <div id="char-root">
+      <section class="char-hero">
+        <div class="char-hero-info">
+          <p class="char-alias">{book.title}{book.author ? `・${book.author}　撰` : ""}</p>
+          <h1 class="char-hero-name">{unit.unitLabel}</h1>
+          <p class="char-summary">{unit.title}</p>
+          <div class="meta-grid">
+            <div class="meta-field">
+              <span class="meta-label">收錄狀態</span>
+              <span class="meta-value">{unit.status === "complete" ? "全文收錄" : "節選"}</span>
             </div>
-          </div>
-        </section>
-
-        <div id="tabs-content">
-          <div class="tab-panel" data-panel-key="main">
-            {
-              unit.sections.map((section: any) => (
-                <div class="section-block" id={section.id}>
-                  <h2 class="section-title">{section.label}</h2>
-                  {section.paragraphs.map((p: any) => (
-                    typeof p === "string" ? (
-                      <p class="paraphrase-text">{p}</p>
-                    ) : (
-                      <p
-                        class="paraphrase-text"
-                        id={p.id}
-                        set:html={renderParagraph(p.text)}
-                      />
-                    )
-                  ))}
-                </div>
-              ))
-            }
+            {unit.statusNote && (
+              <div class="meta-field">
+                <span class="meta-label">說明</span>
+                <span class="meta-value">{unit.statusNote}</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <aside class="toc-panel" id="toc-panel" aria-label="本頁內容導覽">
-      <p class="toc-panel-title">本{book.unitLabelSuffix || book.unitLabelPrefix}場景導覽</p>
-      <ul class="toc-list" id="toc-list"></ul>
-    </aside>
-
-    <button type="button" class="toc-toggle" id="toc-toggle" aria-expanded="false" aria-controls="toc-overlay">
-      <span class="toc-toggle-label">目錄</span>
-    </button>
-
-    <div class="toc-overlay" id="toc-overlay" hidden>
-      <div class="toc-overlay-panel">
-        <div class="toc-overlay-header">
-          <p class="toc-panel-title">場景導覽</p>
-          <button type="button" class="toc-overlay-close" id="toc-overlay-close" aria-label="關閉目錄">✕</button>
-        </div>
-        <ul class="toc-list" id="toc-list-mobile"></ul>
-      </div>
-    </div>
-
-    <script type="application/json" id="toc-data" set:html={tocDataJson} is:inline />
-
-    <script>
-      interface TocItem {
-        id: string;
-        label: string;
-      }
-
-      function escapeHtml(str: string) {
-        return str
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
-      const dataEl = document.getElementById("toc-data");
-      const tocData: Record<string, TocItem[]> = JSON.parse(dataEl?.textContent || "{}");
-
-      const tocPanel = document.getElementById("toc-panel");
-      const tocListDesktop = document.getElementById("toc-list");
-      const tocListMobile = document.getElementById("toc-list-mobile");
-      const tocToggle = document.getElementById("toc-toggle") as HTMLButtonElement;
-      const tocOverlay = document.getElementById("toc-overlay") as HTMLDivElement;
-      const tocOverlayClose = document.getElementById("toc-overlay-close");
-
-      const SCROLL_OFFSET = 96;
-      let currentIds: string[] = [];
-      let suppressAutoUpdateUntil = 0;
-
-      function closeMobileOverlay() {
-        if (tocOverlay) tocOverlay.hidden = true;
-        tocToggle?.setAttribute("aria-expanded", "false");
-      }
-      function openMobileOverlay() {
-        if (tocOverlay) tocOverlay.hidden = false;
-        tocToggle?.setAttribute("aria-expanded", "true");
-      }
-      function setActiveItem(id: string | null) {
-        document.querySelectorAll<HTMLElement>("[data-toc-target]").forEach((a) => {
-          a.classList.toggle("is-active", id !== null && a.dataset.tocTarget === id);
-        });
-      }
-
-      function updateActiveFromScroll() {
-        if (Date.now() < suppressAutoUpdateUntil) return;
-
-        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-        if (atBottom && currentIds.length) {
-          setActiveItem(currentIds[currentIds.length - 1]);
-          return;
-        }
-
-        let current: string | null = null;
-        for (const id of currentIds) {
-          const el = document.getElementById(id);
-          if (!el) continue;
-          const top = el.getBoundingClientRect().top;
-          if (top - SCROLL_OFFSET <= 1) {
-            current = id;
-          } else {
-            break;
+      <div id="tabs-content">
+        <div class="tab-panel" data-panel-key="main">
+          {
+            unit.sections.map((section: any) => (
+              <div class="section-block" id={section.id}>
+                <h2 class="section-title">{section.label}</h2>
+                {section.paragraphs.map((p: any) => (
+                  typeof p === "string" ? (
+                    <p class="paraphrase-text">{p}</p>
+                  ) : (
+                    <p
+                      class="paraphrase-text"
+                      id={p.id}
+                      set:html={renderParagraph(p.text)}
+                    />
+                  )
+                ))}
+              </div>
+            ))
           }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="toc-panel" id="toc-panel" aria-label="本頁內容導覽">
+    <p class="toc-panel-title">本{book.unitLabelSuffix || book.unitLabelPrefix}場景導覽</p>
+    <ul class="toc-list" id="toc-list"></ul>
+  </aside>
+
+  <button type="button" class="toc-toggle" id="toc-toggle" aria-expanded="false" aria-controls="toc-overlay">
+    <span class="toc-toggle-label">目錄</span>
+  </button>
+
+  <div class="toc-overlay" id="toc-overlay" hidden>
+    <div class="toc-overlay-panel">
+      <div class="toc-overlay-header">
+        <p class="toc-panel-title">場景導覽</p>
+        <button type="button" class="toc-overlay-close" id="toc-overlay-close" aria-label="關閉目錄">✕</button>
+      </div>
+      <ul class="toc-list" id="toc-list-mobile"></ul>
+    </div>
+  </div>
+
+  <script type="application/json" id="toc-data" set:html={tocDataJson} is:inline />
+
+  <script>
+    interface TocItem {
+      id: string;
+      label: string;
+    }
+
+    function escapeHtml(str: string) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    const dataEl = document.getElementById("toc-data");
+    const tocData: Record<string, TocItem[]> = JSON.parse(dataEl?.textContent || "{}");
+
+    const tocPanel = document.getElementById("toc-panel");
+    const tocListDesktop = document.getElementById("toc-list");
+    const tocListMobile = document.getElementById("toc-list-mobile");
+    const tocToggle = document.getElementById("toc-toggle") as HTMLButtonElement;
+    const tocOverlay = document.getElementById("toc-overlay") as HTMLDivElement;
+    const tocOverlayClose = document.getElementById("toc-overlay-close");
+
+    const SCROLL_OFFSET = 96;
+    let currentIds: string[] = [];
+    let suppressAutoUpdateUntil = 0;
+
+    function closeMobileOverlay() {
+      if (tocOverlay) tocOverlay.hidden = true;
+      tocToggle?.setAttribute("aria-expanded", "false");
+    }
+    function openMobileOverlay() {
+      if (tocOverlay) tocOverlay.hidden = false;
+      tocToggle?.setAttribute("aria-expanded", "true");
+    }
+    function setActiveItem(id: string | null) {
+      document.querySelectorAll<HTMLElement>("[data-toc-target]").forEach((a) => {
+        a.classList.toggle("is-active", id !== null && a.dataset.tocTarget === id);
+      });
+    }
+
+    function updateActiveFromScroll() {
+      if (Date.now() < suppressAutoUpdateUntil) return;
+
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (atBottom && currentIds.length) {
+        setActiveItem(currentIds[currentIds.length - 1]);
+        return;
+      }
+
+      let current: string | null = null;
+      for (const id of currentIds) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const top = el.getBoundingClientRect().top;
+        if (top - SCROLL_OFFSET <= 1) {
+          current = id;
+        } else {
+          break;
         }
-        if (!current && currentIds.length) current = currentIds[0];
-        setActiveItem(current);
       }
+      if (!current && currentIds.length) current = currentIds[0];
+      setActiveItem(current);
+    }
 
-      function bindClickHandlers() {
-        document.querySelectorAll<HTMLAnchorElement>("[data-toc-target]").forEach((a) => {
-          a.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = a.dataset.tocTarget!;
-            const target = document.getElementById(targetId);
-            setActiveItem(targetId);
-            suppressAutoUpdateUntil = Date.now() + 700;
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-            closeMobileOverlay();
-          });
+    function bindClickHandlers() {
+      document.querySelectorAll<HTMLAnchorElement>("[data-toc-target]").forEach((a) => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          const targetId = a.dataset.tocTarget!;
+          const target = document.getElementById(targetId);
+          setActiveItem(targetId);
+          suppressAutoUpdateUntil = Date.now() + 700;
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+          closeMobileOverlay();
         });
-      }
-
-      function renderList(key: string) {
-        const items = tocData[key] || [];
-        const topLinkHtml = `<li class="toc-top-link"><a href="#char-root" data-toc-target="char-root">↑ 回到頂端</a></li>`;
-        const html =
-          topLinkHtml +
-          items
-            .map((it) => `<li><a href="#${escapeHtml(it.id)}" data-toc-target="${escapeHtml(it.id)}">${escapeHtml(it.label)}</a></li>`)
-            .join("");
-        if (tocListDesktop) tocListDesktop.innerHTML = html;
-        if (tocListMobile) tocListMobile.innerHTML = html;
-        const hasItems = items.length > 0;
-        if (tocPanel) tocPanel.hidden = !hasItems;
-        if (tocToggle) tocToggle.hidden = !hasItems;
-        bindClickHandlers();
-        currentIds = items.map((it) => it.id);
-        window.addEventListener("scroll", () => window.requestAnimationFrame(updateActiveFromScroll));
-        updateActiveFromScroll();
-      }
-
-      tocToggle?.addEventListener("click", () => {
-        const isOpen = tocOverlay ? !tocOverlay.hidden : false;
-        if (isOpen) closeMobileOverlay();
-        else openMobileOverlay();
       });
-      tocOverlayClose?.addEventListener("click", closeMobileOverlay);
-      tocOverlay?.addEventListener("click", (e) => {
-        if (e.target === tocOverlay) closeMobileOverlay();
-      });
+    }
 
-      renderList("main");
-    </script>
-  </body>
-</html>
+    function renderList(key: string) {
+      const items = tocData[key] || [];
+      const topLinkHtml = `<li class="toc-top-link"><a href="#char-root" data-toc-target="char-root">↑ 回到頂端</a></li>`;
+      const html =
+        topLinkHtml +
+        items
+          .map((it) => `<li><a href="#${escapeHtml(it.id)}" data-toc-target="${escapeHtml(it.id)}">${escapeHtml(it.label)}</a></li>`)
+          .join("");
+      if (tocListDesktop) tocListDesktop.innerHTML = html;
+      if (tocListMobile) tocListMobile.innerHTML = html;
+      const hasItems = items.length > 0;
+      if (tocPanel) tocPanel.hidden = !hasItems;
+      if (tocToggle) tocToggle.hidden = !hasItems;
+      bindClickHandlers();
+      currentIds = items.map((it) => it.id);
+      window.addEventListener("scroll", () => window.requestAnimationFrame(updateActiveFromScroll));
+      updateActiveFromScroll();
+    }
+
+    tocToggle?.addEventListener("click", () => {
+      const isOpen = tocOverlay ? !tocOverlay.hidden : false;
+      if (isOpen) closeMobileOverlay();
+      else openMobileOverlay();
+    });
+    tocOverlayClose?.addEventListener("click", closeMobileOverlay);
+    tocOverlay?.addEventListener("click", (e) => {
+      if (e.target === tocOverlay) closeMobileOverlay();
+    });
+
+    renderList("main");
+  </script>
+</Layout>
