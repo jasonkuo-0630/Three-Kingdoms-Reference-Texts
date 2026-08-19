@@ -1,0 +1,23 @@
+---
+interface Props {
+  crumbLabel: string;
+  backHref: string;
+  backLabel: string;
+}
+
+const { crumbLabel, backHref, backLabel } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href={base} aria-label="回到三國文獻庫首頁">
+      <span class="brand-seal brand-seal--ref" aria-hidden="true">典</span>
+      <span class="brand-copy">
+        <strong>三國文獻庫</strong>
+        <small>返回首頁・{crumbLabel}</small>
+      </span>
+    </a>
+    <a class="top-link" href={backHref}>{backLabel}</a>
+  </div>
+</header>
