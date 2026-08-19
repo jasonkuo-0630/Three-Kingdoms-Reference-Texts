@@ -1,5 +1,6 @@
 ---
-import "../../../styles/style.css";
+import Layout from "../../../layouts/Layout.astro";
+import TopBar from "../../../components/TopBar.astro";
 import books from "../../../data/books.json";
 
 export function getStaticPaths() {
@@ -19,66 +20,41 @@ const units = Object.entries(unitsModules)
   })
   .sort((a, b) => a.unitNumber - b.unitNumber);
 ---
-<html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <link rel="icon" href={`${base}favicon.ico`} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{book.title} - 三國文獻庫</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <header class="topbar">
-      <div class="topbar-inner">
-        <a class="brand" href={base} aria-label="回到三國文獻庫首頁">
-          <span class="brand-seal brand-seal--ref" aria-hidden="true">典</span>
-          <span class="brand-copy">
-            <strong>三國文獻庫</strong>
-            <small>返回首頁・{book.title}</small>
-          </span>
-        </a>
-        <a class="top-link" href={`${base}category/${book.categoryId}`}>← 回類別列表</a>
-      </div>
-    </header>
 
-    <section class="faction-banner">
-      <div class="banner-copy">
-        <h1>{book.title}</h1>
-        <p>{book.author ? `${book.author}　撰　・　` : ""}{book.description}</p>
-      </div>
-      <span class="banner-count">{units.length > 0 ? `已收錄 ${units.length} ${book.unitLabelSuffix || book.unitLabelPrefix}` : "尚無收錄內容"}</span>
-    </section>
+<Layout title={`${book.title} - 三國文獻庫`}>
+  <TopBar crumbLabel={book.title} backHref={`${base}category/${book.categoryId}`} backLabel="← 回類別列表" />
 
-    <main class="slip-panel" aria-label="卷回列表">
-      <div class="slip-list">
-        {
-          units.map((u) => (
-            <a class="slip" href={`${base}book/${bookId}/${u.slug}`} aria-label={`查看${u.unitLabel}`}>
-              <span class="slip-accent" aria-hidden="true" />
-              <span class="slip-mark" aria-hidden="true">{book.unitLabelPrefix}{u.unitNumber}</span>
-              <span class="slip-main">
-                <span class="slip-name">{u.unitLabel}</span>
-                <span class="slip-courtesy">{u.title}</span>
-              </span>
-              <span class="slip-extra">
-                <span class="slip-tags">
-                  <span class={`slip-tag ${u.status === "complete" ? "slip-tag--hist" : "slip-tag--romance"}`}>
-                    {u.status === "complete" ? "全文收錄" : "節選"}
-                  </span>
+  <section class="faction-banner">
+    <div class="banner-copy">
+      <h1>{book.title}</h1>
+      <p>{book.author ? `${book.author}　撰　・　` : ""}{book.description}</p>
+    </div>
+    <span class="banner-count">{units.length > 0 ? `已收錄 ${units.length} ${book.unitLabelSuffix || book.unitLabelPrefix}` : "尚無收錄內容"}</span>
+  </section>
+
+  <main class="slip-panel" aria-label="卷回列表">
+    <div class="slip-list">
+      {
+        units.map((u) => (
+          <a class="slip" href={`${base}book/${bookId}/${u.slug}`} aria-label={`查看${u.unitLabel}`}>
+            <span class="slip-accent" aria-hidden="true" />
+            <span class="slip-mark" aria-hidden="true">{book.unitLabelPrefix}{u.unitNumber}</span>
+            <span class="slip-main">
+              <span class="slip-name">{u.unitLabel}</span>
+              <span class="slip-courtesy">{u.title}</span>
+            </span>
+            <span class="slip-extra">
+              <span class="slip-tags">
+                <span class={`slip-tag ${u.status === "complete" ? "slip-tag--hist" : "slip-tag--romance"}`}>
+                  {u.status === "complete" ? "全文收錄" : "節選"}
                 </span>
-                <span class="slip-enter">›</span>
               </span>
-            </a>
-          ))
-        }
-      </div>
-      {units.length === 0 && <p class="empty-state">這本書目前還沒有收錄任何卷／回。</p>}
-    </main>
-  </body>
-</html>
+              <span class="slip-enter">›</span>
+            </span>
+          </a>
+        ))
+      }
+    </div>
+    {units.length === 0 && <p class="empty-state">這本書目前還沒有收錄任何卷／回。</p>}
+  </main>
+</Layout>
