@@ -17,6 +17,20 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 
 const toc = unit.sections.map((s: any) => ({ id: s.id, label: s.label }));
 const tocDataJson = JSON.stringify({ main: toc });
+
+/**
+ * 段落文字裡的裴注用〈……〉標記，這裡把它拆出來，
+ * 渲染成不同樣式的 <span>，跟陳壽正文區分開。
+ * 原始文字完全不變，只是渲染時多包一層標籤。
+ */
+function renderParagraph(text: string) {
+  const parts = text.split(/(〈[^〉]*〉)/g);
+  return parts.map((part) =>
+    part.startsWith("〈") && part.endsWith("〉")
+      ? `<span class="pei-annotation">${part}</span>`
+      : part,
+  ).join("");
+}
 ---
 <html lang="zh-Hant">
   <head>
@@ -63,8 +77,16 @@ const tocDataJson = JSON.stringify({ main: toc });
               unit.sections.map((section: any) => (
                 <div class="section-block" id={section.id}>
                   <h2 class="section-title">{section.label}</h2>
-                  {section.paragraphs.map((p: string) => (
-                    <p class="paraphrase-text">{p}</p>
+                  {section.paragraphs.map((p: any) => (
+                    typeof p === "string" ? (
+                      <p class="paraphrase-text">{p}</p>
+                    ) : (
+                      <p
+                        class="paraphrase-text"
+                        id={p.id}
+                        set:html={renderParagraph(p.text)}
+                      />
+                    )
                   ))}
                 </div>
               ))
